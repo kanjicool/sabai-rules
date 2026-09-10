@@ -216,3 +216,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Secrets
+.env
+!.env.example
+
+# Vector Cache
+data/faiss_index/
