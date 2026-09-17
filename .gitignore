@@ -238,4 +238,5 @@ data/knowledge_graph/*dump*.txt
 !data/richmenu/
 !data/richmenu/*
 
-data/
+# Ignore benchmark json output in scripts/
+scripts/*results*.json

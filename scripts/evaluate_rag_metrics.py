@@ -12,6 +12,7 @@ Evaluates the HR Regulations RAG System against Criterion 5:
 6. Auto-generates docs/rag_evaluation_report.md and data/eval_results.json
 """
 
+import csv
 import json
 import logging
 import re
@@ -156,6 +157,86 @@ EVAL_DATASET = [
         "ground_truth": "พนักงานที่ประสงค์จะลาออกจากการเป็นพนักงาน จะต้องยื่นหนังสือลาออกล่วงหน้าต่อผู้บังคับบัญชาไม่น้อยกว่า 30 วันก่อนวันมีผลการลาออก",
         "expected_page": 33,
         "key_terms": ["ลาออก", "30 วัน", "ล่วงหน้า"]
+    },
+    {
+        "id": "Q16",
+        "category": "วันหยุดตามประเพณี",
+        "query": "บริษัทกำหนดให้มีวันหยุดตามประเพณีกี่วันต่อปี",
+        "ground_truth": "บริษัทกำหนดให้มีวันหยุดตามประเพณีปีหนึ่งไม่น้อยกว่า 13 วัน โดยรวมวันแรงงานแห่งชาติ และหากตรงกับวันหยุดประจำสัปดาห์ให้หยุดชดเชยในวันทำงานถัดไป",
+        "expected_page": 12,
+        "key_terms": ["13 วัน", "วันแรงงาน", "วันหยุดตามประเพณี"]
+    },
+    {
+        "id": "Q17",
+        "category": "วันลาเพื่อรับราชการทหาร",
+        "query": "ลาเพื่อรับราชการทหารในการเรียกพลเพื่อฝึกวิชาทหาร ได้รับค่าจ้างกี่วัน",
+        "ground_truth": "พนักงานมีสิทธิลาเพื่อรับราชการทหารในการเรียกพลเพื่อตรวจสอบ ฝึกวิชาทหาร หรือทดสอบความพรั่งพร้อม โดยได้รับค่าจ้างตลอดเวลาที่ลาแต่ไม่เกิน 60 วันต่อปี",
+        "expected_page": 17,
+        "key_terms": ["60 วัน", "รับราชการทหาร", "ฝึกวิชาทหาร", "ค่าจ้าง"]
+    },
+    {
+        "id": "Q18",
+        "category": "เงินช่วยเหลือกรณีเสียชีวิต",
+        "query": "กรณีพนักงานถึงแก่กรรม บริษัทมีเงินช่วยเหลือค่าทำศพเท่าไหร่",
+        "ground_truth": "กรณีพนักงานถึงแก่กรรม บริษัทจ่ายเงินช่วยเหลือค่าทำศพ 10,000 บาท พร้อมพวงหรีด และกรณีเสียชีวิตเนื่องจากการปฏิบัติหน้าที่ ช่วยเหลือ 30,000 บาท",
+        "expected_page": 44,
+        "key_terms": ["10,000 บาท", "30,000 บาท", "ถึงแก่กรรม", "ค่าทำศพ"]
+    },
+    {
+        "id": "Q19",
+        "category": "การเกษียณอายุการทำงาน",
+        "query": "พนักงานจะเกษียณอายุการทำงานเมื่ออายุครบกี่ปี และได้รับเงินชดเชยหรือไม่",
+        "ground_truth": "พนักงานมีอายุครบ 60 ปีบริบูรณ์ ให้ถือว่าเกษียณอายุการทำงาน โดยบริษัทจะจ่ายค่าชดเชยให้ตามเกณฑ์อายุงานตามมาตรา 118 ของกฎหมายแรงงาน",
+        "expected_page": 34,
+        "key_terms": ["60 ปี", "เกษียณอายุ", "ค่าชดเชย", "มาตรา 118"]
+    },
+    {
+        "id": "Q20",
+        "category": "การตรวจสุขภาพประจำปี",
+        "query": "สิทธิการตรวจสุขภาพประจำปี บริษัทจัดให้อย่างไร",
+        "ground_truth": "บริษัทจัดให้มีการตรวจสุขภาพประจำปีแก่พนักงานปีละ 1 ครั้ง โดยโรงพยาบาลหรือสถานพยาบาลที่บริษัทกำหนด โดยบริษัทเป็นผู้ออกค่าใช้จ่าย",
+        "expected_page": 42,
+        "key_terms": ["ตรวจสุขภาพ", "ปีละ 1 ครั้ง", "บริษัทออกค่าใช้จ่าย"]
+    },
+    {
+        "id": "Q21",
+        "category": "ค่าล่วงเวลา (OT)",
+        "query": "การทำงานล่วงเวลาในวันทำงานปกติ บริษัทจ่ายค่าล่วงเวลาในอัตราเท่าใด",
+        "ground_truth": "การทำงานล่วงเวลาในวันทำงานปกติ บริษัทจ่ายค่าล่วงเวลาไม่น้อยกว่า 1.5 เท่าของอัตราค่าจ้างต่อชั่วโมงในวันทำงานตามจำนวนชั่วโมงที่ทำ",
+        "expected_page": 13,
+        "key_terms": ["1.5 เท่า", "ล่วงเวลา", "วันทำงานปกติ", "ค่าล่วงเวลา"]
+    },
+    {
+        "id": "Q22",
+        "category": "วันลาพักผ่อนประจำปี",
+        "query": "พนักงานระดับ 1 และ 2 ลาพักร้อนได้กี่วันต่อปี",
+        "ground_truth": "พนักงานระดับ 1–2 (ระดับเจ้าหน้าที่ / Officer) มีสิทธิวันลาพักผ่อนประจำปี 6 วันทำงานต่อปี เมื่อผ่านการทดลองงานและทำงานครบ 1 ปี",
+        "expected_page": 18,
+        "key_terms": ["ระดับ 1", "ระดับ 2", "6 วัน", "พักผ่อนประจำปี"]
+    },
+    {
+        "id": "Q23",
+        "category": "วันลาพักผ่อนประจำปี",
+        "query": "พนักงานระดับ 9 ลาพักร้อนได้กี่วันต่อปี",
+        "ground_truth": "พนักงานระดับ 9 (ผู้บริหารระดับสูง / Managing Director / CEO) มีสิทธิวันลาพักผ่อนประจำปี 10 วันทำงานต่อปี",
+        "expected_page": 18,
+        "key_terms": ["ระดับ 9", "10 วัน", "พักผ่อนประจำปี"]
+    },
+    {
+        "id": "Q24",
+        "category": "ระยะเวลาการทดลองงาน",
+        "query": "ระยะเวลาการทดลองงานของบริษัทมีกำหนดไม่เกินกี่วัน",
+        "ground_truth": "บริษัทกำหนดระยะเวลาการทดลองงานไม่เกิน 119 วัน หากผลการทำงานเป็นที่น่าพอใจจะได้รับการบรรจุเป็นพนักงานประจำ",
+        "expected_page": 7,
+        "key_terms": ["119 วัน", "ทดลองงาน", "บรรจุ"]
+    },
+    {
+        "id": "Q25",
+        "category": "วินัยและการลงโทษ",
+        "query": "พนักงานทำผิดวินัยแบบใดที่นายจ้างเลิกจ้างได้ทันทีโดยไม่ต้องจ่ายค่าชดเชย",
+        "ground_truth": "การกระทำความผิดร้ายแรงตามมาตรา 119 เช่น ทุจริตต่อหน้าที่, จงใจทำให้นายจ้างได้รับความเสียหาย, ประมาทเลินเล่อเป็นเหตุให้นายจ้างเสียหายร้ายแรง, ขาดงานติดต่อกัน 3 วันทำงานโดยไม่มีเหตุอันสมควร",
+        "expected_page": 28,
+        "key_terms": ["มาตรา 119", "ทุจริต", "3 วันทำงาน", "เลิกจ้าง", "ไม่ต้องจ่ายค่าชดเชย"]
     }
 ]
 
@@ -352,6 +433,9 @@ def run_evaluation() -> dict[str, Any]:
 
     # Generate Markdown Report
     generate_markdown_report(summary)
+
+    # Generate CSV Report
+    generate_csv_report(summary)
     return summary
 
 
@@ -432,5 +516,46 @@ def generate_markdown_report(summary: dict[str, Any]) -> None:
     logger.info(f"Successfully generated Markdown Evaluation Report at: {report_file}")
 
 
+def generate_csv_report(summary: dict[str, Any]) -> None:
+    """Generates CSV Evaluation Reports in both data/ and docs/ with UTF-8 BOM encoding."""
+    csv_paths = [
+        PROJECT_ROOT / "data" / "eval_results.csv",
+        PROJECT_ROOT / "docs" / "eval_results.csv"
+    ]
+
+    fieldnames = [
+        "id",
+        "category",
+        "query",
+        "ground_truth",
+        "generated_answer",
+        "expected_page",
+        "cited_pages",
+        "citation_match",
+        "sbert_cosine_sim",
+        "bertscore_f1",
+        "bertscore_p",
+        "bertscore_r",
+        "faithfulness",
+        "answer_relevance",
+        "latency_sec",
+        "dynamic_k",
+        "token_budget"
+    ]
+
+    for path in csv_paths:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", encoding="utf-8-sig", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in summary["details"]:
+                clean_row = dict(row)
+                if isinstance(clean_row.get("cited_pages"), list):
+                    clean_row["cited_pages"] = ";".join(str(p) for p in clean_row["cited_pages"])
+                writer.writerow(clean_row)
+        logger.info(f"Successfully generated CSV Evaluation Report at: {path}")
+
+
 if __name__ == "__main__":
     run_evaluation()
+

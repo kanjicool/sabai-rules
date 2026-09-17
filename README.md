@@ -18,11 +18,12 @@
 
 - [🇹🇭 ภาษาไทย (Thai Documentation)](#-ภาษาไทย-thai-version)
 - [🇬🇧 English Documentation](#-english-version)
-- [📑 รายงานสถาปัตยกรรมและผล Benchmark โมเดล LLM (Architecture &amp; Model Benchmark)](file:///d:/psu/AIE/4-1/241_351ModuleAIforSocialMedia/Assignment_2/sabai-rules/docs/architecture_and_benchmark.md)
-- [📊 รายงานผล Benchmark โมเดล Embedding และ FAISS (Embedding Benchmark)](file:///d:/psu/AIE/4-1/241_351ModuleAIforSocialMedia/Assignment_2/sabai-rules/docs/embedding_benchmark.md)
-- [📖 คู่มือการสืบค้นข้อมูลใน Knowledge Graph (Cypher Query Guide)](file:///d:/psu/AIE/4-1/241_351ModuleAIforSocialMedia/Assignment_2/sabai-rules/docs/graph_query_guide.md)
-- [📐 เอกสารการออกแบบโครงสร้างข้อมูล Knowledge Graph (Schema Design)](file:///d:/psu/AIE/4-1/241_351ModuleAIforSocialMedia/Assignment_2/sabai-rules/docs/schema_design.md)
-- [🕸️ ผังความสัมพันธ์รายหมวดใน Knowledge Graph (Chapter Topology)](file:///d:/psu/AIE/4-1/241_351ModuleAIforSocialMedia/Assignment_2/sabai-rules/docs/chapter_graph_topology.md)
+- [📘 **เอกสารรวมสถาปัตยกรรมและรายงานโครงการฉบับสมบูรณ์ (Master Project Documentation)**](docs/master_documentation.md) 🌟 *(รวมเนื้อหาครบทุกมิติ ฉบับสมบูรณ์)*
+- [📋 **สรุปสถาปัตยกรรมและเหตุผลการเลือกเครื่องมือตาม 6 รูบิค (Rubric Architecture Summary)**](docs/architecture_rubric_summary.md) ⭐ *(เจาะลึก 6 เกณฑ์, System Prompt, และ Ablation Study)*
+- [🏛️ ผังและรายละเอียดสถาปัตยกรรมระบบทั้งระบบ (System Architecture &amp; Tech Stack)](docs/system_architecture.md)
+- [📊 รายงานผลการประเมินเชิงปริมาณ RAG (Quantitative Evaluation Report)](docs/rag_evaluation_report.md)
+- [🎙️ สคริปต์การนำเสนอโครงการ 5 นาที (5-Minute Presentation Script)](docs/presentation_script_5min.md)
+- [🧪 คู่มือชุดคำถามทดสอบระบบ LINE Chatbot (Test Questions Guide)](docs/test_qa_guide.md)
 
 ---
 
@@ -32,21 +33,25 @@
 
 ```
 [ เอกสารข้อบังคับการทำงาน PRIMO (PDF 47 หน้า) ]
-       │                                     │
-       ▼                                     ▼
-[ เสาหลักที่ 1: Vector RAG Chatbot ]    [ เสาหลักที่ 2: Knowledge Graph Analysis ]
- • Text Extraction & Normalization     • Entity & Ontological Modeling
- • Section-aware Chunking (212 Chunks) • Multi-hop Relationship Discovery
- • Fast Similarity Retrieval           • Neo4j Graph Database
- • Local LLM (Ollama / Qwen2.5)        • Organizational Topology & Analytics
- • LINE Bot Webhook (FastAPI)          • Disciplinary Network & Matrix Reports
+       │                                           │
+       ▼                                           ▼
+[ เสาหลักที่ 1: Production-Grade Hybrid RAG ]     [ เสาหลักที่ 2: Knowledge Graph Analysis ]
+ • PyMuPDF + PDFPlumber Layout/Table Ingestion     • Entity & Ontological Modeling
+ • Small-to-Big Parent Document (373 Chunks)       • Multi-hop Relationship Discovery
+ • Hybrid Search: FAISS (Dense) + BM25 (Sparse)    • Neo4j Graph Database
+ • Reciprocal Rank Fusion (RRF) & Re-ranking       • Organizational Topology & Analytics
+ • Dynamic Top-k (k=2..5) & Token Budgeting        • Disciplinary Network & Matrix Reports
+ • Strict CoT & Zero Hallucination Guardrails
+ • LINE Bot Webhook (FastAPI) & LIFF Calculator
 ```
 
-### เสาหลักที่ 1: LINE Chatbot ด้วย Pure Vector RAG
+### เสาหลักที่ 1: LINE Chatbot ด้วย Production-Grade Hybrid RAG
 
-- **การทำงาน:** สกัดข้อความและตัดแบ่ง Chunk 212 ส่วนจาก PDF 47 หน้า เชื่อมโยงเข้ากับระบบ Vector Store และ Local LLM (Ollama Qwen2.5)
-- **การตอบกลับ:** ส่งคำตอบสรุปสาระสำคัญ พร้อมระบุเลขหน้าอ้างอิงอย่างชัดเจน ผ่านทั้งข้อความธรรมดาและ **LINE Flex Message Card**
-- **ความรวดเร็ว:** ป้องกันปัญหา LINE Timeout 3 วินาที ด้วยระบบ Asynchronous Background Worker
+- **การสกัดและจัดโครงสร้าง:** สกัดข้อความและตารางด้วย PyMuPDF และ PDFPlumber (Noise < 5%) พร้อมใช้ **Small-to-Big Parent-Document Retrieval** (Child 250 / Parent 800+ ตัวอักษร) ผนวก 5 ตาราง Markdown คุณภาพสูง
+- **เครื่องยนต์สืบค้นลูกผสม (Hybrid Search):** รวม **Dense Vector (FAISS IndexFlatIP bge-m3 1024d)** เข้ากับ **Sparse Lexical (BM25Okapi)** ผสานด้วย **Reciprocal Rank Fusion (RRF)** และตัดสัญญาณรบกวนด้วย **HRReranker**
+- **การควบคุมบริบท:** ปรับค่า Top-k แบบไดนามิกด้วย **DynamicTopKSelector** (k=2 ถึง 5) และคุมขนาดบริบทด้วย **TokenBudgetManager** (1,600 tokens) ป้องกันปัญหา Context Overflow
+- **การตอบกลับ:** โมเดล Local LLM (Ollama Qwen2.5) สังเคราะห์คำตอบด้วย **Strict Few-Shot Chain-of-Thought (CoT)**, มีระบบตรวจจับ Hallucination และแปลงตารางเป็น Mobile-Friendly Bullet points สวยงามบน **LINE Flex Message Bubble** พร้อมระบุเลขหน้าอ้างอิงชัดเจน
+- **ความรวดเร็วและเครื่องคิดเลข:** ระบบ Asynchronous Background Worker ป้องกัน LINE 3s Timeout พร้อมมินิเว็บแอป **LIFF HR Calculator** คำนวณวันลา ค่าชดเชยเลิกจ้าง และเงินสะสม PVD ได้ในตัว
 
 ### เสาหลักที่ 2: Knowledge Graph วิเคราะห์ความสัมพันธ์ของข้อมูลใน PDF
 
@@ -218,10 +223,10 @@ python -m src.graph.seeder --reset
 python -m src.graph.analytics
 ```
 
-### 5.4 สร้าง Vector Index จาก PDF สำหรับ LINE Chatbot
+### 5.4 สร้าง Hybrid Vector & BM25 Index จาก PDF สำหรับ LINE Chatbot
 
 ```bash
-# สกัด 47 หน้า แบ่ง 212 Chunks และสร้าง TF-IDF Vector Index บันทึกลง Disk
+# สกัด 47 หน้า แบ่ง Small-to-Big (373 Chunks, 52 Parents) และสร้าง FAISS + BM25Okapi Index บันทึกลง Disk
 python -m src.vector.store
 # หรือ
 make ingest
@@ -269,7 +274,16 @@ cloudflared tunnel --url http://localhost:8000
    - กดปุ่ม **Verify** เพื่อทดสอบเชื่อมต่อ (ต้องขึ้นสถานะ `Success`)
 4. ปิดการตอบกลับอัตโนมัติของ LINE (Auto-reply messages) ในหน้า LINE Official Account Manager เพื่อให้บอท AI ตอบเพียงตัวเดียว
 
-### 5.8 รันชุดทดสอบอัตโนมัติ (Pytest Test Suite)
+### 5.8 รันการประเมินผลเชิงปริมาณ (Quantitative Evaluation Suite)
+
+```bash
+# รันชุดประเมิน 15 Q&A Pairs คำนวณ SBERT Cosine, BERTScore, Faithfulness และ Relevance
+python -m scripts.evaluate_rag_metrics
+# หรือ
+make eval
+```
+
+### 5.9 รันชุดทดสอบอัตโนมัติ (Pytest Test Suite ครบ 15/15 รายการ)
 
 ```bash
 pytest -v
@@ -302,22 +316,35 @@ python -m scripts.setup_richmenu
 ```text
 sabai-rules/
 ├── .env.example                     # ไฟล์แม่แบบ Environment Variables
-├── requirements.txt                 # รายการ Dependencies ทั้งหมดของระบบ
+├── requirements.txt                 # รายการ Dependencies ทั้งหมดของระบบ (Pinned Versions)
 ├── README.md                        # เอกสารอธิบายระบบ (TH/EN)
-├── docker-compose.yml               # การตั้งค่า Docker สำหรับ Neo4j
-├── Makefile                         # คำสั่งลัด (make analytics, ingest, chatbot, etc.)
+├── Dockerfile                       # Production Docker Container Specification
+├── docker-compose.yml               # Container Orchestration (Neo4j & Sabai RAG)
+├── Makefile                         # คำสั่งลัด (make eval, test, ingest, chatbot, etc.)
 ├── pytest.ini                       # การตั้งค่าทดสอบ Pytest
 ├── pyproject.toml                   # มาตรฐานบรรจุภัณฑ์ Python Packaging
 ├── data/
 │   ├── ข้อบังคับเกี่ยวกับการทำงาน-PRIMO-Group (1).pdf # เอกสารต้นฉบับ 47 หน้า
+│   ├── richmenu/                    # รูปภาพกราฟิก Rich Menu ขนาดมาตรฐาน LINE
 │   ├── knowledge_graph/
 │   │   ├── schema.cypher            # คำสั่งสร้าง Index & Unique Constraints
 │   │   ├── primo_knowledge_graph.cypher # Cypher Seeds สกัดจาก PDF 47 หน้า (Core)
-│   │   ├── primo_hybrid_extracted.cypher # Cypher Seeds ที่สกัดจาก Qwen2.5:7b (12 หมวด 47 หน้า)
 │   │   └── benefits_data.json       # ไฟล์ JSON สรุปกฎระเบียบและสิทธิประโยชน์
-│   └── vector_store/
-│       ├── hr_index.pkl             # TF-IDF Vector Matrix บันทึกบน Disk
-│       └── hr_chunks.json           # Chunks ข้อมูล 212 รายการพร้อม Metadata
+│   └── vector_store/                # ดัชนี Hybrid Store (สร้างอัตโนมัติด้วย make ingest)
+│       ├── hr_faiss_bge-m3.index    # Dense Vector Index (1024d)
+│       ├── hr_bm25.pkl              # Sparse BM25Okapi Model
+│       ├── hr_chunks.json           # Small Child Chunks (373 Chunks)
+│       └── hr_parents.json          # Big Parent Contexts (52 Parents)
+├── docs/                            # รายงานการประเมินและเอกสารทางเทคนิค
+│   ├── rag_evaluation_report.md     # รายงานผลประเมินเชิงปริมาณ SBERT/BERTScore/Faithfulness
+│   ├── presentation_script_5min.md  # สคริปต์การนำเสนอโครงการ 5 นาที
+│   ├── test_qa_guide.md             # คู่มือชุดคำถามทดสอบถาม-ตอบ
+│   └── embedding_benchmark.md       # รายงาน Benchmark โมเดลเวกเตอร์
+├── scripts/                         # สคริปต์ประเมินผลและยูทิลิตี้
+│   ├── evaluate_rag_metrics.py      # Quantitative Evaluation Suite (15 Q&A Pairs)
+│   ├── benchmark_embeddings.py      # Empirical Vector Search Benchmark
+│   ├── generate_richmenu_image.py   # สร้างกราฟิก Rich Menu
+│   └── setup_richmenu.py            # อัปโหลดและเปิดใช้งาน Rich Menu บน LINE OA
 ├── src/
 │   ├── config.py                    # โหลดการตั้งค่าด้วย Pydantic Settings
 │   ├── graph/                       # Pillar 2: Knowledge Graph Analysis Engine
@@ -325,22 +352,26 @@ sabai-rules/
 │   │   ├── seeder.py                # สคริปต์รัน Seed ข้อมูลลงกราฟ (รองรับ --reset)
 │   │   ├── queries.py               # Deterministic Cypher Query Service
 │   │   ├── verify_graph.py          # สคริปต์ตรวจสอบความถูกต้องของโหนด
-│   │   ├── analytics.py             # เอนจินวิเคราะห์ความสัมพันธ์และสร้างรายงาน
-│   │   └── llm_extractor.py         # ตัวสกัด Entities & Relations จาก PDF ด้วย Qwen2.5:7b
+│   │   └── analytics.py             # เอนจินวิเคราะห์ความสัมพันธ์และสร้างรายงาน
 │   ├── vector/                      # Pillar 1: Document Processing & Vector Storage
-│   │   ├── loader.py                # ตัวโหลด PDF พร้อมแก้สระอำและช่องไฟภาษาไทย
-│   │   ├── chunker.py               # ตัวตัด Chunking (212 Chunks) รักษาบริบท
-│   │   └── store.py                 # ตัวจัดเก็บและค้นหาความคล้ายคลึงของเวกเตอร์
+│   │   ├── loader.py                # ตัวโหลด PDF (PyMuPDF + PDFPlumber ตรวจจับตาราง)
+│   │   ├── chunker.py               # Small-to-Big Chunker + 5 ตาราง Markdown
+│   │   ├── embeddings.py            # BGE-M3 Dense Embedding Client (Ollama)
+│   │   ├── query_processor.py       # Synonym Expansion & HyDE Engine
+│   │   ├── reranker.py              # Cross-Encoder & Salient Entity Re-ranker
+│   │   └── store.py                 # Hybrid Retrieval (FAISS + BM25 + RRF Fusion)
 │   ├── llm/                         # Local LLM Integration
-│   │   └── client.py                # Ollama Client รองรับ Qwen2.5 พร้อม Fallback
+│   │   └── client.py                # Ollama Client (/api/chat) พร้อม Safe Fallback
 │   ├── rag/                         # Vector RAG Orchestration
-│   │   └── vector_rag.py            # ตัวจัดทำ Prompt, ดึง Context, อ้างอิงเลขหน้า
+│   │   └── vector_rag.py            # Dynamic Top-k, Token Budgeting, Strict CoT & Guardrails
 │   └── webhook/                     # FastAPI & LINE Bot Integration
-│       ├── server.py                # FastAPI Webhook Server พร้อม Background Tasks
-│       └── line_handler.py          # LINE Signature Verification & Flex Message
+│       ├── server.py                # FastAPI Server (Webhook, Health, LIFF Calculator)
+│       ├── flex_templates.py        # เทมเพลต LINE Flex Carousel, FAQ & Calculator
+│       └── line_handler.py          # LINE Webhook Event Processor & Auto-Tunnel Resolve
 └── tests/
-    ├── test_graph.py                # ชุดทดสอบ Knowledge Graph
-    └── test_vector_rag.py           # ชุดทดสอบ Vector RAG และ Webhook API
+    ├── test_line_ux.py              # ชุดทดสอบ Quick Replies, Flex Cards, LIFF Calculator
+    ├── test_vector_rag.py           # ชุดทดสอบ Hybrid RAG, Dynamic Top-k & Token Budgeting
+    └── test_graph.py                # ชุดทดสอบ Knowledge Graph
 ```
 
 ---
@@ -373,9 +404,9 @@ Enterprise employee benefit policies and working regulations are intrinsically m
   - [X] Clean architecture directory layout
   - [X] Python virtual environment (`.venv`) isolation
   - [X] Configuration files (`.env.example`, `requirements.txt`, `pytest.ini`, `pyproject.toml`)
-  - [X] Portable `docker-compose.yml` for Neo4j 5.x with APOC
+  - [X] Portable `docker-compose.yml` for Neo4j 5.x with APOC and Ollama
   - [X] Comprehensive bilingual `README.md` (TH/EN)
-- [X] **Phase 2: Knowledge Graph Engineering (Current Execution Focus)**
+- [X] **Phase 2: Knowledge Graph Engineering**
   - [X] Knowledge Graph Ontology Schema (9 Levels, 12 Benefits, 7 Leave categories)
   - [X] Cypher seed definitions extracted from 47-page PDF (`primo_knowledge_graph.cypher`)
   - [X] Schema uniqueness constraints & traversal indexes (`schema.cypher`)
@@ -383,22 +414,26 @@ Enterprise employee benefit policies and working regulations are intrinsically m
   - [X] Automated graph seeder CLI (`src/graph/seeder.py`)
   - [X] Production multi-hop Cypher query service (`src/graph/queries.py`)
   - [X] Automated verification suite & Pytest coverage (`src/graph/verify_graph.py`, `tests/test_graph.py`)
-- [X] **Phase 3: Vector Store & Ingestion**
-  - [X] PDF text extraction with PyMuPDF (`fitz`) and Thai normalization
-  - [X] Small-to-Big section-aware chunking preserving Thai table context
-  - [X] High-performance FAISS index with `bge-m3` embedding model
+- [X] **Phase 3: Vector Store & Ingestion (Production-Grade)**
+  - [X] PDF text extraction with PyMuPDF (`fitz`) and PDFPlumber table parser
+  - [X] Small-to-Big section-aware chunking (373 chunks) preserving Thai markdown tables
+  - [X] High-performance FAISS index with `bge-m3` embedding model & BM25Okapi sparse index
 - [X] **Phase 4: Hybrid RAG & Ollama LLM Orchestration**
-  - [X] Hybrid Search (FAISS Dense + TF-IDF Sparse with RRF)
-  - [X] Query expansion (Thai HR synonyms/acronyms) & HyDE
-  - [X] Candidate re-ranking and structured Markdown tables
-  - [X] Grounded anti-hallucination Strict CoT prompt templates with page citations
+  - [X] Hybrid Search (FAISS Dense + BM25 Sparse with Reciprocal Rank Fusion RRF)
+  - [X] Query expansion (Thai HR synonyms/acronyms) & HyDE (Hypothetical Document Embeddings)
+  - [X] Cross-Encoder Re-ranking with Salient Entity matching
+  - [X] Dynamic Top-k (k=2..5) & Strict Token Budgeting (1,600 tokens)
+  - [X] Grounded anti-hallucination Strict CoT prompt templates with Page Citations
+  - [X] Mobile-optimized formatting (`clean_markdown_for_line`)
 - [X] **Phase 5: FastAPI Webhook & LINE Bot Integration**
   - [X] FastAPI webhook endpoint with signature verification
   - [X] Asynchronous background tasks preventing LINE 3s timeout
-  - [X] Interactive LINE Flex Message card renderer
+  - [X] Interactive LINE Flex Message card carousel, Quick Replies, and LIFF Calculator
   - [X] Cloudflare Tunnel ingress configuration guide
-- [X] **Phase 6: Automated Verification Suite**
-  - [X] Full test coverage for Vector RAG pipeline and FastAPI endpoints (`tests/test_vector_rag.py`)
+- [X] **Phase 6: Automated Verification & Quantitative Evaluation Suite**
+  - [X] Full test coverage for Vector RAG pipeline, LINE UX, and FastAPI endpoints
+  - [X] Automated RAG Triad Evaluation Suite (`scripts/evaluate_rag_metrics.py`)
+  - [X] Comprehensive reports: [System Architecture Blueprint](docs/system_architecture.md), [RAG Evaluation Report](docs/rag_evaluation_report.md) & [5-Min Presentation Script](docs/presentation_script_5min.md)
 
 ---
 
@@ -408,6 +443,7 @@ Enterprise employee benefit policies and working regulations are intrinsically m
 
 - **Python 3.10+** (Python 3.11 or 3.12 recommended)
 - **Docker Desktop** (for running local Neo4j container) or native Neo4j instance
+- **Ollama** with `bge-m3` and `qwen2.5:3b` models installed
 
 ---
 
@@ -475,45 +511,39 @@ NEO4J_PASSWORD=SecretPassword123
 
 ---
 
-## 🚀 5. Running Knowledge Graph & Verifications (Phase 1)
+## 🚀 5. Execution Guide
 
-### 5.1 Seed Knowledge Graph into Neo4j
+### 5.1 Ingest PDF & Build Small-to-Big Hybrid Index
 
 ```bash
-# Windows
-.\.venv\Scripts\python.exe -m src.graph.seeder
-
-# macOS / Linux
-python3 -m src.graph.seeder
+python -m src.vector.loader
 ```
 
-### 5.2 Run Verification Suite
+### 5.2 Seed Knowledge Graph into Neo4j
 
 ```bash
-# Windows
-.\.venv\Scripts\python.exe -m src.graph.verify_graph
-
-# macOS / Linux
-python3 -m src.graph.verify_graph
+python -m src.graph.seeder
 ```
 
-### 5.3 Execute Automated Unit Tests (Pytest)
+### 5.3 Run Automated Unit Tests (Pytest)
 
 ```bash
-# Windows
-.\.venv\Scripts\pytest -v
-
-# macOS / Linux
 pytest -v
 ```
 
-### 5.4 Start FastAPI Webhook Server
+### 5.4 Run Quantitative RAG Evaluation Benchmark
+
+```bash
+python scripts/evaluate_rag_metrics.py
+```
+
+### 5.5 Start FastAPI Webhook Server
 
 ```bash
 python -m src.webhook.server
 ```
 
-### 5.5 Connect to LINE via Cloudflare Tunnel
+### 5.6 Connect to LINE via Cloudflare Tunnel
 
 ```bash
 # Expose port 8000 via Cloudflare Tunnel
