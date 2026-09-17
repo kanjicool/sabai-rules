@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sabai HR Calculator - เครื่องคำนวณสิทธิประโยชน์พนักงาน PRIMO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --primary: #009688;
+      --primary-dark: #00796b;
+      --primary-light: #e0f2f1;
+      --accent: #ff9800;
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Prompt', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 16px 12px 32px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 12px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(0, 150, 136, 0.2);
+      border: 1px solid rgba(0, 150, 136, 0.4);
+      color: #4db6ac;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Tab Navigation */
+    .tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 14px;
+      padding: 4px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 4px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 150, 136, 0.35);
+    }
+
+    /* Calculator Cards */
+    .calc-panel {
+      display: none;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius);
+      padding: 22px 18px;
+      box-shadow: var(--shadow);
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    .calc-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .label-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    select, input[type="number"], input[type="date"] {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #ffffff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    select:focus, input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 150, 136, 0.25);
+    }
+    select option {
+      background: #1e293b;
+      color: #ffffff;
+    }
+
+    /* Result Box */
+    .result-box {
+      margin-top: 20px;
+      background: rgba(0, 150, 136, 0.1);
+      border: 1px solid rgba(0, 150, 136, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .result-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #80cbc4;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .result-highlight {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .result-highlight span {
+      font-size: 1.1rem;
+      color: #80cbc4;
+      font-weight: 500;
+    }
+    .result-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    /* Breakdown List */
+    .breakdown {
+      margin-top: 14px;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 0.78rem;
+    }
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+    }
+    .breakdown-row:last-child {
+      border-bottom: none;
+    }
+    .breakdown-row.total {
+      font-weight: 600;
+      color: #4db6ac;
+      margin-top: 4px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Action Buttons */
+    .action-btn {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background: linear-gradient(135deg, #009688 0%, #00796b 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0, 150, 136, 0.3);
+      transition: all 0.2s ease;
+    }
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Reference tag */
+    .ref-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: #64748b;
+      margin-top: 14px;
+      justify-content: center;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #10b981;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <span class="badge">PRIMO SERVICE SOLUTIONS</span>
+      <h1 class="title">Sabai HR Calculator</h1>
+      <p class="subtitle">คำนวณสิทธิ์วันลา ค่าชดเชย และกองทุน PVD ตามระเบียบบริษัท</p>
+    </header>
+
+    <!-- Tabs Navigation -->
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" onclick="switchTab('leave', this)" role="tab">
+        <span>🏖️</span>
+        <span>สิทธิ์วันลา</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('severance', this)" role="tab">
+        <span>💼</span>
+        <span>ค่าชดเชย</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('pvd', this)" role="tab">
+        <span>🏥</span>
+        <span>กองทุน PVD</span>
+      </button>
+    </nav>
+
+    <!-- Tab 1: Leave Calculator -->
+    <section id="panel-leave" class="calc-panel active">
+      <div class="form-group">
+        <label class="label" for="leave-level">ระดับตำแหน่งของคุณ (Job Level):</label>
+        <select id="leave-level" onchange="calcLeave()">
+          <option value="1">ระดับ 1 (Level 1: เจ้าหน้าที่ปฏิบัติการ)</option>
+          <option value="2">ระดับ 2 (Level 2: เจ้าหน้าที่)</option>
+          <option value="3" selected>ระดับ 3 (Level 3: ชำนาญการ / Senior / Supervisor)</option>
+          <option value="4">ระดับ 4 (Level 4: หัวหน้าแผนก / Section Head)</option>
+          <option value="5">ระดับ 5 (Level 5: ผู้ช่วยผู้จัดการ)</option>
+          <option value="6">ระดับ 6 (Level 6: ผู้จัดการแผนก / Manager)</option>
+          <option value="7">ระดับ 7 (Level 7: ผู้จัดการอาวุโส / Senior Manager)</option>
+          <option value="8">ระดับ 8 (Level 8: ผู้ช่วยผู้อำนวยการ / AVP)</option>
+          <option value="9">ระดับ 9 (Level 9: ผู้บริหารระดับสูง / VP ขึ้นไป)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="leave-years">
+          อายุงานสะสม (ปี):
+          <span class="label-hint">(ต้องผ่านทดลองงานและครบ 1 ปีขึ้นไป)</span>
+        </label>
+        <select id="leave-years" onchange="calcLeave()">
+          <option value="0">ยังไม่ถึง 1 ปี (อยู่ระหว่างทดลองงาน / ไม่ครบปี)</option>
+          <option value="1" selected>ครบ 1 ปีขึ้นไป</option>
+        </select>
+      </div>
+
+      <div class="result-box">
+        <div class="result-title">สิทธิ์วันลาพักผ่อนประจำปีที่ได้รับ</div>
+        <div class="result-highlight" id="leave-res-days">7 <span>วันทำงาน/ปี</span></div>
+        <div class="result-desc" id="leave-res-note">
+          พนักงานระดับ 3 มีสิทธิ์ลาพักร้อน 7 วันทำงานต่อปีเมื่ออายุงานครบ 1 ปี
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-row">
+          <span>🤒 สิทธิ์ลาป่วย (ได้รับค่าจ้าง)</span>
+          <strong>30 วันทำงาน/ปี</strong>
+        </div>
+        <div class="breakdown-row">
+          <span>👶 ลาเพื่อคลอดบุตร (จ่ายค่าจ้าง 45 วัน)</span>
+          <strong>98 วัน</strong>
+        </div>
+        <div class="breakdown-row">
+          <span>🕊️ ลาฌาปนกิจ (คนในครอบครัว)</span>
+          <strong>ตามระเบียบ</strong>
+        </div>
+      </div>
+
+      <button class="action-btn" onclick="shareResult('leave')">
+        📤 ส่งผลสรุปเข้าแชต LINE
+      </button>
+
+      <div class="ref-tag">
+        📌 อ้างอิง: หมวด 4 ข้อ 18–19 หน้า 14–18 ข้อบังคับ PRIMO
+      </div>
+    </section>
+
+    <!-- Tab 2: Severance Calculator -->
+    <section id="panel-severance" class="calc-panel">
+      <div class="form-group">
+        <label class="label" for="sev-tenure">ระยะเวลาอายุงานสะสม:</label>
+        <select id="sev-tenure" onchange="calcSeverance()">
+          <option value="0">ไม่ถึง 120 วัน (ไม่มีสิทธิค่าชดเชย)</option>
+          <option value="30">ครบ 120 วัน แต่ไม่ถึง 1 ปี</option>
+          <option value="90">ครบ 1 ปี แต่ไม่ถึง 3 ปี</option>
+          <option value="180" selected>ครบ 3 ปี แต่ไม่ถึง 6 ปี</option>
+          <option value="240">ครบ 6 ปี แต่ไม่ถึง 10 ปี</option>
+          <option value="300">ครบ 10 ปีขึ้นไป</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="sev-salary">
+          ฐานเงินเดือนล่าสุด (บาท/เดือน):
+        </label>
+        <input type="number" id="sev-salary" value="30000" min="0" step="1000" oninput="calcSeverance()">
+      </div>
+
+      <div class="result-box">
+        <div class="result-title">จำนวนวันค่าชดเชยที่ได้รับ</div>
+        <div class="result-highlight" id="sev-res-days">180 <span>วัน (อัตราสุดท้าย)</span></div>
+        <div class="result-desc" id="sev-res-money">
+          ประมาณการเงินชดเชย: <strong style="color: #4db6ac; font-size: 1.2rem;">180,000</strong> บาท
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-row">
+          <span>เกณฑ์กฎหมายคุ้มครองแรงงาน</span>
+          <strong id="sev-bracket">มาตรา 118 (อายุงาน 3-6 ปี)</strong>
+        </div>
+        <div class="breakdown-row">
+          <span>ฐานค่าจ้างเฉลี่ยต่อวัน</span>
+          <strong id="sev-daily-wage">1,000 บาท/วัน</strong>
+        </div>
+        <div class="breakdown-row total">
+          <span>ยอดเงินชดเชยรวมโดยประมาณ</span>
+          <span id="sev-total-text">180,000 บาท</span>
+        </div>
+      </div>
+
+      <button class="action-btn" onclick="shareResult('severance')">
+        📤 ส่งผลสรุปเข้าแชต LINE
+      </button>
+
+      <div class="ref-tag">
+        📌 อ้างอิง: หมวด 10 ข้อ 36 หน้า 35 ข้อบังคับเกี่ยวกับการทำงาน
+      </div>
+    </section>
+
+    <!-- Tab 3: PVD Calculator -->
+    <section id="panel-pvd" class="calc-panel">
+      <div class="form-group">
+        <label class="label" for="pvd-tenure">อายุงานสะสม:</label>
+        <select id="pvd-tenure" onchange="calcPVD()">
+          <option value="0">ยังไม่ถึง 1 ปี (ยังไม่มีสิทธิสมทบ)</option>
+          <option value="2">ครบ 1 ปี แต่ไม่ถึง 3 ปี (นายจ้างสมทบ 2%)</option>
+          <option value="3" selected>ครบ 3 ปี แต่ไม่ถึง 5 ปี (นายจ้างสมทบ 3%)</option>
+          <option value="5">ครบ 5 ปี แต่ไม่ถึง 7 ปี (นายจ้างสมทบ 5%)</option>
+          <option value="7">ครบ 7 ปีขึ้นไป (นายจ้างสมทบ 7%)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="pvd-salary">ฐานเงินเดือน (บาท/เดือน):</label>
+        <input type="number" id="pvd-salary" value="35000" min="0" step="1000" oninput="calcPVD()">
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="pvd-emp-rate">อัตราเงินสะสมของพนักงาน (%):</label>
+        <select id="pvd-emp-rate" onchange="calcPVD()">
+          <option value="2">2%</option>
+          <option value="3" selected>3%</option>
+          <option value="5">5%</option>
+          <option value="7">7%</option>
+          <option value="10">10%</option>
+          <option value="15">15%</option>
+        </select>
+      </div>
+
+      <div class="result-box">
+        <div class="result-title">เงินสมทบจากบริษัทต่องวด</div>
+        <div class="result-highlight" id="pvd-res-match">3% <span>(บริษัทจ่ายสมทบ)</span></div>
+        <div class="result-desc" id="pvd-res-match-money">
+          บริษัทจ่ายสมทบให้เดือนละ: <strong style="color: #4db6ac; font-size: 1.1rem;">1,050</strong> บาท
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-row">
+          <span>พนักงานสะสม (<span id="pvd-lbl-emp">3</span>%)</span>
+          <strong id="pvd-emp-money">1,050 บาท/เดือน</strong>
+        </div>
+        <div class="breakdown-row">
+          <span>นายจ้างสมทบ (<span id="pvd-lbl-comp">3</span>%)</span>
+          <strong id="pvd-comp-money">1,050 บาท/เดือน</strong>
+        </div>
+        <div class="breakdown-row total">
+          <span>ยอดรวมเข้ากองทุน PVD ต่อเดือน</span>
+          <span id="pvd-total-money">2,100 บาท/เดือน</span>
+        </div>
+      </div>
+
+      <button class="action-btn" onclick="shareResult('pvd')">
+        📤 ส่งผลสรุปเข้าแชต LINE
+      </button>
+
+      <div class="ref-tag">
+        📌 อ้างอิง: หมวด 11 ข้อ 41–42 หน้า 41–42 ข้อบังคับ PRIMO
+      </div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast">คัดลอกผลสรุปเรียบร้อยแล้ว</div>
+
+  <script>
+    // Initialize LIFF SDK
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.liff) {
+        liff.init({ liffId: "2006742517-xxxx" }).catch(() => {
+          // LIFF ID optional for standalone browser
+        });
+      }
+      calcLeave();
+      calcSeverance();
+      calcPVD();
+    });
+
+    function switchTab(tabName, el) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.calc-panel').forEach(p => p.classList.remove('active'));
+
+      el.classList.add('active');
+      document.getElementById('panel-' + tabName).classList.add('active');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // 1. Leave Calculation Logic
+    function calcLeave() {
+      const level = parseInt(document.getElementById('leave-level').value);
+      const years = parseInt(document.getElementById('leave-years').value);
+      let days = 0;
+
+      if (years === 0) {
+        document.getElementById('leave-res-days').innerHTML = `0 <span>วัน (ยังไม่ครบ 1 ปี)</span>`;
+        document.getElementById('leave-res-note').innerText = "ตามระเบียบบริษัท จะได้รับสิทธิ์วันลาพักร้อนเมื่อผ่านการทดลองงานและทำงานติดต่อกันครบ 1 ปีขึ้นไป";
+        return;
+      }
+
+      if (level <= 2) days = 6;
+      else if (level <= 5) days = 7;
+      else if (level <= 8) days = 8;
+      else days = 10;
+
+      document.getElementById('leave-res-days').innerHTML = `${days} <span>วันทำงาน/ปี</span>`;
+      document.getElementById('leave-res-note').innerText = `พนักงานระดับ ${level} ได้รับสิทธิ์วันลาพักผ่อนประจำปี ${days} วันทำงานต่อปีเมื่อครบอายุงาน 1 ปี`;
+    }
+
+    // 2. Severance Calculation Logic
+    function calcSeverance() {
+      const days = parseInt(document.getElementById('sev-tenure').value);
+      const salary = parseFloat(document.getElementById('sev-salary').value) || 0;
+      const daily = salary / 30;
+      const total = Math.round(daily * days);
+
+      document.getElementById('sev-res-days').innerHTML = `${days} <span>วัน</span>`;
+      document.getElementById('sev-res-money').innerHTML = `ประมาณการเงินชดเชย: <strong style="color: #4db6ac; font-size: 1.2rem;">${total.toLocaleString()}</strong> บาท`;
+      document.getElementById('sev-daily-wage').innerText = `${Math.round(daily).toLocaleString()} บาท/วัน`;
+      document.getElementById('sev-total-text').innerText = `${total.toLocaleString()} บาท`;
+
+      let bracketText = "";
+      if (days === 0) bracketText = "ไม่ถึง 120 วัน (ไม่มีค่าชดเชย)";
+      else if (days === 30) bracketText = "อายุงาน 120 วัน - 1 ปี";
+      else if (days === 90) bracketText = "อายุงาน 1 - 3 ปี";
+      else if (days === 180) bracketText = "อายุงาน 3 - 6 ปี";
+      else if (days === 240) bracketText = "อายุงาน 6 - 10 ปี";
+      else bracketText = "อายุงาน 10 ปีขึ้นไป";
+
+      document.getElementById('sev-bracket').innerText = bracketText;
+    }
+
+    // 3. PVD Calculation Logic
+    function calcPVD() {
+      const matchRate = parseInt(document.getElementById('pvd-tenure').value);
+      const empRate = parseInt(document.getElementById('pvd-emp-rate').value);
+      const salary = parseFloat(document.getElementById('pvd-salary').value) || 0;
+
+      const empMoney = Math.round(salary * (empRate / 100));
+      const compMoney = Math.round(salary * (matchRate / 100));
+      const totalPvd = empMoney + compMoney;
+
+      document.getElementById('pvd-res-match').innerHTML = `${matchRate}% <span>(บริษัทจ่ายสมทบ)</span>`;
+      document.getElementById('pvd-res-match-money').innerHTML = `บริษัทจ่ายสมทบให้เดือนละ: <strong style="color: #4db6ac; font-size: 1.1rem;">${compMoney.toLocaleString()}</strong> บาท`;
+
+      document.getElementById('pvd-lbl-emp').innerText = empRate;
+      document.getElementById('pvd-lbl-comp').innerText = matchRate;
+      document.getElementById('pvd-emp-money').innerText = `${empMoney.toLocaleString()} บาท/เดือน`;
+      document.getElementById('pvd-comp-money').innerText = `${compMoney.toLocaleString()} บาท/เดือน`;
+      document.getElementById('pvd-total-money').innerText = `${totalPvd.toLocaleString()} บาท/เดือน`;
+    }
+
+    // Share result via LIFF or Clipboard
+    function shareResult(type) {
+      let text = "";
+      if (type === 'leave') {
+        const level = document.getElementById('leave-level').value;
+        const days = document.getElementById('leave-res-days').innerText.replace(/\s+/g, ' ').trim();
+        text = `🏖️ สรุปสิทธิ์วันลาพักผ่อน (PRIMO)\n• ระดับตำแหน่ง: Level ${level}\n• สิทธิ์วันลาพักร้อน: ${days}\n• ลาป่วย: 30 วัน/ปี (ได้ค่าจ้าง)\n• ลาคลอด: 98 วัน (ได้ค่าจ้าง 45 วัน)\n📌 อ้างอิงระเบียบ PRIMO หน้า 14-18`;
+      } else if (type === 'severance') {
+        const bracket = document.getElementById('sev-bracket').innerText;
+        const days = document.getElementById('sev-res-days').innerText.replace(/\s+/g, ' ').trim();
+        const total = document.getElementById('sev-total-text').innerText;
+        text = `💼 สรุปประมาณการค่าชดเชยเลิกจ้าง (PRIMO)\n• เกณฑ์อายุงาน: ${bracket}\n• จำนวนวันชดเชย: ${days}\n• ประมาณการเงินชดเชย: ${total}\n📌 อ้างอิงระเบียบ PRIMO หน้า 35`;
+      } else if (type === 'pvd') {
+        const compRate = document.getElementById('pvd-lbl-comp').innerText;
+        const total = document.getElementById('pvd-total-money').innerText;
+        text = `🏥 สรุปกองทุนสำรองเลี้ยงชีพ PVD (PRIMO)\n• นายจ้างจ่ายสมทบ: ${compRate}%\n• เงินสะสมรวมต่อเดือน: ${total}\n📌 อ้างอิงระเบียบ PRIMO หน้า 41-42`;
+      }
+
+      if (window.liff && liff.isInClient()) {
+        liff.sendMessages([{ type: 'text', text: text }])
+          .then(() => {
+            showToast("ส่งผลลัพธ์เข้าแชต LINE เรียบร้อย! 💬");
+            liff.closeWindow();
+          })
+          .catch(() => copyToClipboard(text));
+      } else {
+        copyToClipboard(text);
+      }
+    }
+
+    function copyToClipboard(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("คัดลอกผลสรุปไปยังคลิปบอร์ดแล้ว! 📋");
+        });
+      } else {
+        showToast("คำนวณผลลัพธ์สำเร็จ");
+      }
+    }
+  </script>
+</body>
+</html>

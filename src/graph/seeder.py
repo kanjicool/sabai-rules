@@ -18,7 +18,7 @@ def parse_cypher_file(file_path: Path) -> list[str]:
     if not file_path.exists():
         raise FileNotFoundError(f"Cypher script not found: {file_path}")
 
-    content = file_path.read_text(encoding="utf-8")
+    content = file_path.read_text(encoding="utf-8-sig")
     statements: list[str] = []
     current_stmt: list[str] = []
 
@@ -101,18 +101,40 @@ def inspect_graph_stats(conn: Neo4jConnection) -> dict[str, int]:
     return {"total_nodes": nodes, "total_relationships": rels, "label_count": len(labels)}
 
 
-def run_seed() -> bool:
+def clear_database(conn: Neo4jConnection) -> None:
+    """Clears all existing nodes and relationships from the database."""
+    logger.info("Clearing existing nodes and relationships...")
+    with conn.session() as session:
+        session.run("MATCH (n) DETACH DELETE n")
+    logger.info("Database cleared successfully.")
+
+
+def run_seed(reset: bool = False) -> bool:
     """Main orchestration for seeding the database."""
     conn = Neo4jConnection()
     if not conn.verify_connectivity():
         logger.error("Cannot connect to Neo4j at %s. Please check credentials or start the container.", settings.NEO4J_URI)
         return False
 
+    if reset or "--reset" in sys.argv:
+        clear_database(conn)
+
     schema_file = settings.KG_DIR / "schema.cypher"
     data_file = settings.KG_DIR / "primo_knowledge_graph.cypher"
+    hybrid_file = settings.KG_DIR / "primo_hybrid_extracted.cypher"
+    enriched_file = settings.KG_DIR / "primo_enriched_entities.cypher"
 
     seed_schema(conn, schema_file)
     seed_knowledge_graph(conn, data_file)
+
+    if hybrid_file.exists():
+        logger.info("Detected hybrid extracted Cypher file: %s", hybrid_file.name)
+        seed_knowledge_graph(conn, hybrid_file)
+
+    if enriched_file.exists():
+        logger.info("Detected NLP enriched Cypher file: %s", enriched_file.name)
+        seed_knowledge_graph(conn, enriched_file)
+
     inspect_graph_stats(conn)
     return True
 

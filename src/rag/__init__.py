@@ -1,8 +1,15 @@
-"""Hybrid RAG Orchestration Module (Phase 3).
+"""Vector RAG Module for Sabai-Rules LINE Chatbot.
 
 This module coordinates:
-- Intent classification & Entity extraction from user question
-- Dual-retrieval: Neo4j (deterministic rules) + FAISS (narrative text)
-- Context fusion and synthesis
-- Response formatting for LINE Flex Message cards
+- Document vector similarity retrieval (top-k relevant sections)
+- Context augmentation and citation tracking (page numbers & chapters)
+- LLM inference and response synthesis
+- LINE text and Flex Message card formatting
 """
+
+from src.rag.vector_rag import VectorRAGEngine, RAGAnswer
+
+__all__ = [
+    "VectorRAGEngine",
+    "RAGAnswer",
+]

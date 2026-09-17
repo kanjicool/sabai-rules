@@ -1,17 +1,30 @@
-# Core Knowledge Graph & Database (Phase 1 Focus)
-neo4j>=5.18.0
-pydantic>=2.7.0
-pydantic-settings>=2.2.0
-python-dotenv>=1.0.0
-tabulate>=0.9.0
-pytest>=8.0.0
+# ==============================================================================
+# Sabai Rules: Production-Grade Hybrid RAG for HR Regulations Chatbot
+# Pinned Dependencies for Deterministic MLOps Reproducibility
+# ==============================================================================
 
-# Future Phases (Vector Store, LLM Orchestration, Webhook & LINE Bot)
-pymupdf>=1.23.0
-pdfplumber>=0.10.0
+# Core Configuration & Data Validation
+pydantic>=2.7.0,<3.0.0
+pydantic-settings>=2.2.0,<3.0.0
+python-dotenv>=1.0.0,<2.0.0
+tabulate>=0.9.0
+
+# Document Ingestion & Layout/Table Parsing (Criterion 1)
+pymupdf>=1.23.0,<2.0.0
+pdfplumber>=0.10.0,<1.0.0
+Pillow>=10.0.0
+
+# Vector Store, Hybrid Retrieval & Reranking (Criterion 2 & 3)
 faiss-cpu>=1.8.0
-sentence-transformers>=2.7.0
+rank-bm25>=0.2.2
+scikit-learn>=1.4.0
+numpy>=1.26.0
+
+# Fast Webhook & LINE Messaging API (Phase 4 & Production Deployment)
 fastapi>=0.110.0
 uvicorn[standard]>=0.28.0
 line-bot-sdk>=3.9.0
 httpx>=0.27.0
+
+# Testing & Quality Assurance
+pytest>=8.0.0

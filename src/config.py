@@ -18,22 +18,31 @@ class Settings(BaseSettings):
     NEO4J_PASSWORD: str = "SecretPassword123"
     NEO4J_DATABASE: str = "neo4j"
 
-    # Vector & Embeddings (Planned Phase)
-    EMBEDDING_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    # Vector & Embeddings
+    EMBEDDING_MODEL_NAME: str = "bge-m3"
     FAISS_INDEX_PATH: str = "data/faiss_index"
+    VECTOR_INDEX_BACKEND: str = "faiss"  # "faiss" or "tfidf"
 
-    # LLM Settings (Planned Phase)
+    # RAG Accuracy Improvements
+    ENABLE_HYBRID_SEARCH: bool = True
+    ENABLE_RERANKING: bool = True
+    ENABLE_QUERY_EXPANSION: bool = True
+    ENABLE_HYDE: bool = False
+    ENABLE_PARENT_RETRIEVAL: bool = True
+
+    # LLM Settings (Vector RAG)
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "qwen2.5:7b"
+    OLLAMA_MODEL: str = "qwen2.5:3b"
 
     # LINE Messaging API (Planned Phase)
     LINE_CHANNEL_SECRET: str = ""
     LINE_CHANNEL_ACCESS_TOKEN: str = ""
 
-    # Webhook Server
+    # Webhook Server & Public Tunnel URL
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = True
+    PUBLIC_URL: str = ""
 
     model_config = SettingsConfigDict(
         env_file=str(Path(__file__).resolve().parent.parent / ".env"),
