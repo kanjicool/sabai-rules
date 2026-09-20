@@ -26,6 +26,12 @@ FOR (p:PVDRule) REQUIRE p.tenure_id IS UNIQUE;
 CREATE CONSTRAINT unique_severance_rule IF NOT EXISTS
 FOR (s:SeveranceRule) REQUIRE s.tier_id IS UNIQUE;
 
+CREATE CONSTRAINT unique_timeline_rule IF NOT EXISTS
+FOR (t:TimelineRule) REQUIRE t.id IS UNIQUE;
+
+CREATE CONSTRAINT unique_authority_role IF NOT EXISTS
+FOR (a:AuthorityRole) REQUIRE a.name IS UNIQUE;
+
 CREATE CONSTRAINT unique_policy_clause IF NOT EXISTS
 FOR (c:PolicyClause) REQUIRE c.clause_id IS UNIQUE;
 
